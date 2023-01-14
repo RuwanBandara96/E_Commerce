@@ -45,7 +45,7 @@ const userCtrl = {
         }
     },
     login: (req, res) => {
-        
+         
     },
     refreshtoken: (req, res) => {
         try {
@@ -54,7 +54,7 @@ const userCtrl = {
              
             jwt.verify(rf_token, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
 
-                if (err) return res.status(400).json({ msg: "Please Logon or Register" })
+                if (err) return res.status(400).json({ msg: "Please Login or Register" })
                 const accesstoken = createAccessToken({ id: user.id })
                 res.json({accesstoken})
             })
