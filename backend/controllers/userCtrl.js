@@ -10,6 +10,8 @@ const userCtrl = {
             
             if (user)
                 return res.status(400).json({ msg: "The email already exists" });
+            // if (!user)
+                // return res.status(200).json({ msg: "Email Found" });
             
             if (password.length < 6)
                 return res.status(400).json({ msg: "The password could be more than 6 letters" });
@@ -34,23 +36,54 @@ const userCtrl = {
             })
 
 
-            res.json({refreshtoken,accesstoken})
+            res.json({msg:"Registered Success",refreshtoken,accesstoken})
             //res.json({ accesstoken })
             
-            res.json({ msg: "Registered Success" })
+            //res.json({ msg: "Registered Success" })
             
             
         } catch (err) {
             return res.status(500).json({ msg: err.message })
         }
     },
-    login: (req, res) => {
-         
+    login:async (req, res) => {
+        try {
+            const { email, password } = req.body;
+            const user = await Users.findOne({ email });
+            if (!user)
+                return res.status(400).json({ msg: "User does not exist" });
+            const isMatch = await bcrypt.compare(password, user.password);
+            if (!isMatch)
+                return res.status(400).json({ msg: "Incorrect Password" });
+            
+            //if login success,create the accessToken and refreshToken
+            const accesstoken = createAccessToken({ id: user._id })
+            const refreshtoken = createRefreshToken({ id: user._id })
+            
+            res.cookie('refreshtoken', refreshtoken, {
+                httpOnly: true,
+                path:'/uesr/refresh_token'
+    
+            })
+            res.json({msg:"Login Success",refreshtoken,accesstoken})
+ 
+        } catch (err) {
+            return res.status(500).json({ msg: err.message });
+         }
+    },
+    logout:async (req, res) => {
+        try {
+            res.clearCookie('refreshtoken', { path: '/user/refresh_token' })
+            return res.json({msg:"logged Out"})
+            
+        } catch (err) {
+            return res.status(500).json({msg:err.message})
+        }
     },
     refreshtoken: (req, res) => {
         try {
             const rf_token = req.cookies.refreshtoken;
-            if (!rf_token) return res.status(400).json({ msg: "Please logon or Register1" })
+            if (!rf_token) return res.status(400).json({ msg: "Please login or Register1" })
              
             jwt.verify(rf_token, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
 
@@ -67,6 +100,13 @@ const userCtrl = {
         }
         
         
+    },
+    getuser: async (req, res) => {
+        try {
+            res.json(req.user);
+        } catch (err) {
+            return res.status(500).json({ msg: err.message });
+        }
     }
 
 }
