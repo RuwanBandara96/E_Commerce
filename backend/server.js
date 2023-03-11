@@ -15,6 +15,8 @@ app.use(fileUpload({
 }))
 
 app.use('/user', require('./routes/userRouter'))
+app.use('/api', require('./routes/categoryRouter'))
+app.use('/api', require('./routes/upload'))
 
 //locally run mongodb server
 //const URI="mongodb://localhost:27017/ECommerce"
